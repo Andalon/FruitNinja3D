@@ -73,10 +73,10 @@ class CharacterMotorJumping {
 	var enabled : boolean = true;
 
 	// How high do we jump when pressing jump and letting go immediately
-	var baseHeight : float = 1000.0;
+	var baseHeight : float = 1.0;
 	
 	// We add extraHeight units (meters) on top when holding the button down longer while jumping
-	var extraHeight : float = 4000.0;
+	var extraHeight : float = 2.0;
 	
 	// How much does the character jump out perpendicular to the surface on walkable surfaces?
 	// 0 means a fully vertical jump and 1 means fully perpendicular.

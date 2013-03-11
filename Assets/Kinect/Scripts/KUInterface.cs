@@ -15,6 +15,9 @@ using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Collections;
+//using Microsoft.Kinect;
+//using Microsoft.Speech.AudioFormat;
+//using Microsoft.Speech.Recognition;
 
 /// <summary>
 /// class for accessing Kinect methods
@@ -74,6 +77,10 @@ public class KUInterface : MonoBehaviour {
 	private Vector3 lastLeftFoot;
 	private Vector3 baseFeetHeight;
 	private Vector3 baseHeadHeight;
+	
+	//Speech variables
+	private bool audioIsReady;
+	public bool displayAudioInformation = false;
 	
 /********************************************************************************
 *           USER METHODS -> Call these methods from your scripts
@@ -172,6 +179,8 @@ public class KUInterface : MonoBehaviour {
     private void Start() {
 
         NUIisReady = false;
+		audioIsReady = false;
+		//audioIsReady = KinectWrapper.AudioContextInit();
 
         //initialize Kinect sensor
         NUIisReady = KinectWrapper.NuiContextInit(twoPlayer);
@@ -182,6 +191,11 @@ public class KUInterface : MonoBehaviour {
         else
             Debug.Log("Could Not Initialize Sensor.");
 
+		// if (audioIsReady)
+			// Debug.Log("Audio Initialized.");
+		// else
+			// Debug.Log("Could Not Initialize Audio Source.");
+			
         if (scaleFactor == 0) {
             Debug.Log("WARNING: KUInterface.scaleFactor is set to zero. All joint positions will be the zero vector.");
         }
@@ -208,6 +222,11 @@ public class KUInterface : MonoBehaviour {
         }
 		
 		motor = GetComponent<CharacterMotor>();
+		
+		player = GameObject.FindGameObjectWithTag("Player");
+		katana = GameObject.Find("Katana");
+		
+		
     }
 
 
@@ -217,10 +236,42 @@ public class KUInterface : MonoBehaviour {
         //if Unity is in editor mode, the Kinect sensor will remain active
         //if (!Application.isEditor) {
             KinectWrapper.NuiContextUnInit();
+			//KinectWrapper.AudioContextUnInit();
         //}
     }
 
-
+	float alpha = 0.1f;
+	int tau = 3;
+	Vector3 pPredictionR = new Vector3(0,0,0);
+	Vector3 spLastR = new Vector3(0,0,0);
+	Vector3 s2pLastR = new Vector3(0,0,0);
+	
+	Vector3 pPredictionL = new Vector3(0,0,0);
+	Vector3 spLastL = new Vector3(0,0,0);
+	Vector3 s2pLastL = new Vector3(0,0,0);
+	
+	GameObject[] gos;
+	GameObject player;
+	GameObject katana;
+	
+	private void UpdateDESP(){
+		Vector3 pCurrentR = GetJointPos(KinectWrapper.Joints.HAND_RIGHT);
+		Vector3 spCurrentR = alpha * pCurrentR + (1.0f-alpha) * spLastR;
+		Vector3	s2pCurrentR = alpha * spCurrentR + (1.0f-alpha) * s2pLastR;
+		spLastR = spCurrentR;
+		s2pLastR = s2pCurrentR;
+		float alphaTerm = alpha * tau / (1.0f-alpha);
+		pPredictionR = (2 + alphaTerm) * spCurrentR - (1 + alphaTerm) * s2pCurrentR; 
+		
+		Vector3 pCurrentL = GetJointPos(KinectWrapper.Joints.HAND_LEFT);
+		Vector3 spCurrentL = alpha * pCurrentL + (1.0f-alpha) * spLastL;
+		Vector3	s2pCurrentL = alpha * spCurrentL + (1.0f-alpha) * s2pLastL;
+		spLastL = spCurrentL;
+		s2pLastL = s2pCurrentL;
+		pPredictionL = (2 + alphaTerm) * spCurrentL - (1 + alphaTerm) * s2pCurrentL; 
+	}
+	
+	
     //called every Unity frame (frame-rate dependent)
     private void Update() {
 
@@ -238,6 +289,35 @@ public class KUInterface : MonoBehaviour {
         }
 		
 		if(started){
+			
+			Vector3 rightHandPos = pPredictionR;
+			Vector3 leftHandPos = pPredictionL;
+			Vector3 handVec = rightHandPos - leftHandPos;
+			float magHandVec = handVec.magnitude;
+			
+			Vector3 rightForearmVec = rightHandPos-GetJointPos(KinectWrapper.Joints.ELBOW_RIGHT);
+			Vector3 rightArmVec = rightHandPos-GetJointPos(KinectWrapper.Joints.SHOULDER_RIGHT);
+			rightForearmVec.Normalize();
+			rightArmVec.Normalize();
+			
+			Vector3 leftForearmVec = leftHandPos-GetJointPos(KinectWrapper.Joints.ELBOW_LEFT);
+			Vector3 leftArmVec = leftHandPos-GetJointPos(KinectWrapper.Joints.SHOULDER_LEFT);
+			leftForearmVec.Normalize();
+			leftArmVec.Normalize();
+			
+			if(magHandVec > 0.0f && magHandVec <= 0.25f){
+				//Debug.Log("Katana");
+				katana.SetActiveRecursively(true);
+			}
+			
+			transform.position = leftHandPos + new Vector3(0,2.0f,0);
+			handVec.Normalize();
+			transform.rotation = 
+				Quaternion.Slerp(
+					transform.rotation, 
+					Quaternion.LookRotation(Vector3.Scale(handVec, new Vector3(1,1,-1))),
+					Time.deltaTime*5);
+			
 			
 			Vector3 rightFoot = GetJointPos(KinectWrapper.Joints.FOOT_RIGHT);
 			Vector3 leftFoot = GetJointPos (KinectWrapper.Joints.FOOT_LEFT);
@@ -281,6 +361,7 @@ public class KUInterface : MonoBehaviour {
 		else if(Vector3.Dot(Vector3.right, (GetJointPos(KinectWrapper.Joints.HAND_RIGHT) - GetJointPos(KinectWrapper.Joints.HEAD)).normalized) > 0.8){
 			started = true;
 		}
+		UpdateDESP();
     }
 
 
@@ -307,31 +388,31 @@ public class KUInterface : MonoBehaviour {
     //update depth data
     private void UpdateDepth() {
 
-        int size = 0;
+        // int size = 0;
 
-        //copy pixel data from unmanaged memory
-        IntPtr ptr = KinectWrapper.GetDepthImage(ref size);
-        Marshal.Copy(ptr, seqDepth, 0, size);
+        // //copy pixel data from unmanaged memory
+        // IntPtr ptr = KinectWrapper.GetDepthImage(ref size);
+        // Marshal.Copy(ptr, seqDepth, 0, size);
 
-        //create depth array
-        for (int y = 0; y < IM_H; y++) {
-            for (int x = 0; x < IM_W; x++) {
-                depth[x][y] = seqDepth[(IM_H * IM_W * 2) - (IM_W * 2 * y) - ((x * 2) + 1)];
-            }
-        }
+        // //create depth array
+        // for (int y = 0; y < IM_H; y++) {
+            // for (int x = 0; x < IM_W; x++) {
+                // depth[x][y] = seqDepth[(IM_H * IM_W * 2) - (IM_W * 2 * y) - ((x * 2) + 1)];
+            // }
+        // }
 
-        if (displayDepthImage) {
-            //create color matrix
-            for (int y = 0; y < IM_H; y++) {
-                for (int x = 0; x < IM_W; x++) {
-                    dcols[x + (y * IM_W)] = new Color32(0, depth[x][y], 0, 255);
-                }
-            }
+        // if (displayDepthImage) {
+            // //create color matrix
+            // for (int y = 0; y < IM_H; y++) {
+                // for (int x = 0; x < IM_W; x++) {
+                    // dcols[x + (y * IM_W)] = new Color32(0, depth[x][y], 0, 255);
+                // }
+            // }
             
-            //set texture
-            depthImg.SetPixels32(dcols);
-            depthImg.Apply();
-        }
+            // //set texture
+            // depthImg.SetPixels32(dcols);
+            // depthImg.Apply();
+        // }
     }
 
 
@@ -431,6 +512,14 @@ public class KinectWrapper {  //interfaces with DLL
     public static extern void NuiUpdate();
     [DllImport("/Assets/Kinect/Plugins/KUInterface.dll")]
     public static extern void NuiContextUnInit();
+	//Audio Context Management
+	// [DllImport("/Assets/Kinect/Plugins/KUInterface.dll")]
+	// public static extern bool AudioContextInit();
+	// [DllImport("/Assets/Kinect/Plugins/KUInterface.dll")]
+	// public static extern void AudioContextUnInit();
+	
+	
+	
     //Get Methods
     [DllImport("/Assets/Kinect/Plugins/KUInterface.dll")]
     public static extern void GetSkeletonTransform(int player, int joint, ref SkeletonTransform trans);

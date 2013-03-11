@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{3943CD2B-9A74-5583-1799-B603A416317A}</ProjectGuid>
+	<ProjectGuid>{13C3A734-9BB4-1FD7-DF44-40DC400A41DA}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -44,13 +44,26 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Kinect\DepthWrapper.cs" />
+     <Compile Include="Assets\Kinect\DeviceOrEmulator.cs" />
+     <Compile Include="Assets\Kinect\DisplayColor.cs" />
+     <Compile Include="Assets\Kinect\DisplayDepth.cs" />
+     <Compile Include="Assets\Kinect\KinectEmulator.cs" />
+     <Compile Include="Assets\Kinect\KinectInterop.cs" />
+     <Compile Include="Assets\Kinect\KinectModelControllerV2.cs" />
+     <Compile Include="Assets\Kinect\KinectPointController.cs" />
+     <Compile Include="Assets\Kinect\KinectRecorder.cs" />
+     <Compile Include="Assets\Kinect\KinectSensor.cs" />
      <Compile Include="Assets\Kinect\Scripts\KUInterface.cs" />
+     <Compile Include="Assets\Kinect\SkeletonWrapper.cs" />
      <None Include="Assets\Standard Assets\Projectors\Guidelines.txt" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Multiply Culled.shader" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-Basic.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Miscellaneous Shaders\Mobile Background.shader" />
      <None Include="Assets\Standard Assets\Projectors\Sources\Shaders\Projector Multiply.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Vertex Colored Shaders\Mobile Transparent Vertex Color.shader" />
+     <None Include="Assets\Kinect\Documents\README.txt" />
+     <None Include="Assets\Kinect\Documents\BSD.txt" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Miscellaneous Shaders\Mobile Detail.shader" />
      <None Include="Assets\Standard Assets\Particles\Sources\Shaders\Particle Alpha Blend (Queue +100).shader" />
      <None Include="Assets\Standard Assets\Skyboxes\_skybox info.txt" />
@@ -61,18 +74,16 @@
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Particles Additive Culled.shader" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-LightedOutline.shader" />
      <None Include="Assets\Standard Assets\Toon Shading\Sources\Shaders\Toony-Lighted.shader" />
-     <None Include="Assets\Kinect\Documents\README.txt" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Vertex Colored Shaders\Mobile Vertex Colored.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap Only.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap AlphaTest.shader" />
-     <None Include="Assets\Kinect\Documents\BSD.txt" />
-     <None Include="Assets\Weapons\Katana\textures.txt" />
+     <None Include="Assets\Fruit Ninja Assets\Weapons\Katana\textures.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{D04AF7DF-3F2D-DE30-4429-EEC152412584}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{B2A21FD9-4E33-91A9-C333-5E96CEE56C43}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{D1CC640F-DA8B-3291-E2F7-8D0F8CD3AB20}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
+      <Project>{0FA0FC21-E484-37B8-2058-E8315B785BA7}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
